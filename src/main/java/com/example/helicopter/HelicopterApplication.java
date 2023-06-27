@@ -1,0 +1,13 @@
+package com.example.helicopter;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HelicopterApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(HelicopterApplication.class, args);
+    }
+
+}
