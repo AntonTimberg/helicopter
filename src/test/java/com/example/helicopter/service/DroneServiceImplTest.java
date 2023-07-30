@@ -1,5 +1,7 @@
 package com.example.helicopter.service;
 
+import com.example.helicopter.converter.DroneConverter;
+import com.example.helicopter.dto.DroneDto;
 import com.example.helicopter.entity.Drone;
 import com.example.helicopter.repo.DroneRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,47 +13,66 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 
-public class DroneServiceImplTest {
+class DroneServiceImplTest {
     @InjectMocks
     private DroneServiceImpl droneService;
     @Mock
     private DroneRepo droneRepo;
 
+    @Mock
+    private DroneConverter conversionService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
     }
 
     @Test
     void createDroneTest() {
-        var droneMock = mock(Drone.class);
-        var savedDroneMock = mock(Drone.class);
-        when(droneRepo.save(droneMock)).thenReturn(savedDroneMock);
+        var drone = mock(Drone.class);
+        var savedDrone = mock(Drone.class);
+        var convertedDrone = mock(DroneDto.class);
 
-        var actual = droneService.createDrone(droneMock);
+        when(droneRepo.save(drone)).thenReturn(savedDrone);
+        when(conversionService.convert(savedDrone)).thenReturn(convertedDrone);
 
-        assertEquals(savedDroneMock, actual);
-        verify(droneRepo).save(droneMock);
+        var actual = droneService.createDrone(drone);
+
+        assertEquals(convertedDrone, actual);
+        verify(droneRepo).save(drone);
+        verify(conversionService).convert(savedDrone);
         verifyNoMoreInteractions(droneRepo);
+        verifyNoMoreInteractions(conversionService);
     }
 
     @Test
     void getAllTest() {
         var droneMock = mock(Drone.class);
+        var convertedDrone = mock(DroneDto.class);
         var droneListMock = List.of(droneMock);
+        var droneDtoMocks = List.of(convertedDrone);
+
         when(droneRepo.findAll()).thenReturn(droneListMock);
+        when(conversionService.convert(droneMock)).thenReturn(convertedDrone);
+
+        //when(droneService.getAll()).thenReturn();
 
         var actual = droneService.getAll();
 
-        assertEquals(droneListMock, actual);
-        assertEquals(droneMock, actual.get(0));
+        assertEquals(droneDtoMocks, actual);
+        //assertEquals(droneMock, actual.get(0));
         verify(droneRepo).findAll();
-        verifyNoMoreInteractions(droneRepo);
+        verify(conversionService).convert(droneMock);
+        verifyNoMoreInteractions(droneRepo, conversionService);
     }
-    
+
     @Test
     void deleteDroneBySerialWhenDroneIsFoundTest(){
         String serialNumber = "kakoitoNomer";
@@ -77,28 +98,41 @@ public class DroneServiceImplTest {
     }
 
     @Test
-    void getDroneBySerialTest(){
+    void getDroneBySerialTest() {
         String serialNumber = "kakoitoNomer";
         var droneMock = mock(Drone.class);
+        var droneDtoMock = mock(DroneDto.class);
+
         when(droneRepo.findBySerialNumber(serialNumber)).thenReturn(droneMock);
+        when(conversionService.convert(droneMock)).thenReturn(droneDtoMock);
 
         var actual = droneService.getDroneBySerial(serialNumber);
 
-        assertEquals(droneMock, actual);
+        assertEquals(droneDtoMock, actual);
+
         verify(droneRepo).findBySerialNumber(serialNumber);
-        verifyNoMoreInteractions(droneRepo);
+        verify(conversionService).convert(droneMock);
+        verifyNoMoreInteractions(droneRepo, conversionService);
     }
 
     @Test
-    void updateDroneTest(){
-        var droneMock = mock(Drone.class);
-        var expected = mock(Drone.class);
-        when(droneRepo.save(droneMock)).thenReturn(expected);
+    void updateDroneTest() {
+        Drone droneMock = mock(Drone.class);
+        DroneDto droneDtoMock = mock(DroneDto.class);
 
-        var actual = droneService.updateDrone(droneMock);
+        when(droneMock.getId()).thenReturn(1L);
+        when(droneRepo.existsById(1L)).thenReturn(true);
+        when(droneRepo.save(droneMock)).thenReturn(droneMock);
+        when(conversionService.convert(droneMock)).thenReturn(droneDtoMock);
 
-        assertEquals(expected,actual);
+        DroneDto actual = droneService.updateDrone(droneMock);
+
+        assertEquals(droneDtoMock, actual);
+
+        verify(droneRepo).existsById(1L);
         verify(droneRepo).save(droneMock);
-        verifyNoMoreInteractions(droneRepo);
+        verify(conversionService).convert(droneMock);
+
+        verifyNoMoreInteractions(droneRepo, conversionService);
     }
 }
