@@ -1,5 +1,6 @@
 package com.example.helicopter.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -21,6 +22,9 @@ public class Medication {
     private Long id;
     private String name;
     private Integer weight;
+
+    @Column(unique = true)
     private String articul;
+
     private String pic;
 }
